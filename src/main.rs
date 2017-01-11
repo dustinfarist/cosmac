@@ -1,4 +1,54 @@
 #[derive(Debug)]
+pub enum Instruction {
+    /// 8xy0 - LD Vx, Vy
+    /// Set Vx = Vy.
+    /// Stores the value of register Vy in register Vx.
+    Ld(usize, usize), // Load
+
+    /// 8xy1 - OR Vx, Vy
+    /// Set Vx = Vx OR Vy.
+    /// Performs a bitwise OR on the values of Vx and Vy, then stores the result in Vx.
+    Or(usize, usize),
+  
+    /// 8xy2 - AND Vx, Vy
+    /// Set Vx = Vx AND Vy.
+    /// Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx.
+    And(usize, usize),
+
+    /// 8xy3 - XOR Vx, Vy
+    /// Set Vx = Vx XOR Vy.
+    /// Performs a bitwise exclusive OR on the values of Vx and Vy, then stores the result in Vx. 
+    Xor(usize, usize),
+
+    /// 8xy4 - ADD Vx, Vy
+    /// Set Vx = Vx + Vy, set VF = carry.
+    /// The values of Vx and Vy are added together.
+    /// If the result is greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0.
+    /// Only the lowest 8 bits of the result are kept, and stored in Vx.
+    Add(usize, usize),
+
+    /// 8xy5 - SUB Vx, Vy
+    /// Set Vx = Vx - Vy, set VF = NOT borrow.
+    /// If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
+    Sub(usize, usize),
+
+    /// 8xy6 - SHR Vx {, Vy}
+    /// Set Vx = Vx SHR 1.
+    /// If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+    Shr(usize), // Shift Right
+
+    /// 8xy7 - SUBN Vx, Vy
+    /// Set Vx = Vy - Vx, set VF = NOT borrow.
+    /// If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+    Subn(usize, usize),
+
+    /// 8xyE - SHL Vx {, Vy}
+    /// Set Vx = Vx SHL 1.
+    /// If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+    Shl(usize), // Shift Left
+}
+
+#[derive(Debug)]
 pub struct Register {
     values: [u8; 16]
 }
@@ -19,6 +69,16 @@ pub struct Chip {
 }
 
 impl Chip {
+    pub fn execute_instruction(&mut self, instruction: Instruction) {
+        match instruction {
+            Instruction::Ld(vx, vy) => {
+                let value = self.register.get(vy);
+                self.register.set(vx, value);
+            }
+            _ => (),
+        }
+    }
+
     #[allow(unused_variables)]
     pub fn execute(&mut self, instruction: u16) {
         let opcode = instruction >> 12;
@@ -73,5 +133,9 @@ fn main() {
     // LD V1, V3
     let opcode = (8 << 12) + (1 << 8) + (3 << 4);
     chip.execute(opcode);
+    println!("{:?}", chip.register.values);
+
+    // LD V3, V0
+    chip.execute_instruction(Instruction::Ld(3, 0));
     println!("{:?}", chip.register.values);
 }
