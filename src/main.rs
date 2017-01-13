@@ -211,8 +211,8 @@ mod register_instructions {
         let mut chip = Chip::new();
         chip.execute(Instruction::LdByte(0, 10));
         chip.execute(Instruction::LdByte(1, 15));
-        assert_eq!(10, chip.register.get(0));
-        assert_eq!(15, chip.register.get(1));
+        register_eq!(chip, 0, 10);
+        register_eq!(chip, 1, 15);
     }
 
     #[test]
@@ -220,70 +220,70 @@ mod register_instructions {
         let mut chip = Chip::new();
         chip.execute(Instruction::LdByte(0, 10));
         chip.execute(Instruction::LdByte(0, 15));
-        assert_eq!(15, chip.register.get(0));
+        register_eq!(chip, 0, 15);
     }
 
     #[test]
     fn bitwise_and() {
         let mut chip = Chip::new_with_register(&[10, 15]);
         chip.execute(Instruction::And(1, 0));
-        assert_eq!(10 & 15, chip.register.get(1));
+        register_eq!(chip, 1, 10 & 15);
     }
 
     #[test]
     fn bitwise_or() {
         let mut chip = Chip::new_with_register(&[10, 15]);
         chip.execute(Instruction::Or(1, 0));
-        assert_eq!(10 | 15, chip.register.get(1));
+        register_eq!(chip, 1, 10 | 15);
     }
 
     #[test]
     fn bitwise_xor() {
         let mut chip = Chip::new_with_register(&[10, 15]);
         chip.execute(Instruction::Xor(1, 0));
-        assert_eq!(10 ^ 15, chip.register.get(1));
+        register_eq!(chip, 1, 10 ^ 15);
     }
 
     #[test]
     fn add_works() {
         let mut chip = Chip::new_with_register(&[10, 15]);
         chip.execute(Instruction::Add(1, 0));
-        assert_eq!(25, chip.register.get(1));
+        register_eq!(chip, 1, 25);
     }
 
     #[test]
     fn add_sets_carry_flag_on_overflow() {
         let mut chip = Chip::new_with_register(&[255, 1]);
         chip.execute(Instruction::Add(0, 1));
-        assert_eq!(0, chip.register.get(0));
-        assert_eq!(1, chip.register.get(1));
-        assert_eq!(1, chip.register.get(0xF));
+        register_eq!(chip, 0, 0);
+        register_eq!(chip, 1, 1);
+        register_eq!(chip, 0xF, 1);
     }
 
     #[test]
     fn subtract_when_vx_greater_than_vy() {
         let mut chip = Chip::new_with_register(&[100, 25]);
         chip.execute(Instruction::Sub(0, 1));
-        assert_eq!(75, chip.register.get(0));
-        assert_eq!(1, chip.register.get(0xF));
+        register_eq!(chip, 0, 75);
+        register_eq!(chip, 0xF, 1);
     }
 
     #[test]
     fn subtract_when_vx_less_than_vy() {
         let mut chip = Chip::new_with_register(&[25, 100]);
         chip.execute(Instruction::Sub(0, 1));
-        assert_eq!(181, chip.register.get(0)); // 256 + (-75)
-        assert_eq!(0, chip.register.get(0xF));
+        register_eq!(chip, 0, 181); // 256 + (-75)
+        register_eq!(chip, 0xF, 0);
     }
 
     #[test]
     fn add_then_subtract_restores_state() {
         let mut chip = Chip::new_with_register(&[100, 25, 100]);
         chip.execute(Instruction::Add(0, 1));
-        assert_eq!(125, chip.register.get(0));
+        register_eq!(chip, 0, 125);
 
         chip.execute(Instruction::Sub(0, 1));
-        assert_eq!(100, chip.register.get(0));
+        register_eq!(chip, 0, 100);
     }
 
     #[test]
