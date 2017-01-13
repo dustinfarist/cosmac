@@ -9,6 +9,11 @@ pub enum Instruction {
     /// The interpreter puts the value kk into register Vx.
     LdByte(usize, u8),
 
+    /// 7xkk - ADD Vx, byte
+    /// Set Vx = Vx + kk.
+    /// Adds the value kk to the value of register Vx, then stores the result in Vx.
+    AddByte(usize, u8),
+    
     /// 8xy0 - LD Vx, Vy
     /// Set Vx = Vy.
     /// Stores the value of register Vy in register Vx.
@@ -137,7 +142,14 @@ impl Chip {
     pub fn execute(&mut self, instruction: &Instruction) {
         println!("{0:<15?} ", instruction);
         match *instruction {
-            Instruction::LdByte(vx, value) => self.register.set(vx, value),
+            Instruction::LdByte(vx, value) => {
+                self.register.set(vx, value)
+            }
+            Instruction::AddByte(vx, value) => {
+                let value_x = self.register.get(vx) as u16;
+                let sum: u8 = ((value_x + value as u16) & 255) as u8;
+                self.register.set(vx, sum)
+            }
             Instruction::Ld(vx, vy) => {
                 let value = self.register.get(vy);
                 self.register.set(vx, value);
@@ -405,5 +417,19 @@ mod register_instructions {
             chip.execute(&Instruction::Rnd(0, 1));
             assert!(chip.register.get(0) <= 1);
         }
+    }
+
+    #[test]
+    fn add_byte_works() {
+        let mut chip = Chip::with_register_values(&[100]);
+        chip.execute(&Instruction::AddByte(0, 100));
+        register_eq!(chip, 0, 200);
+    }
+
+    #[test]
+    fn add_byte_truncates_overflows() {
+        let mut chip = Chip::with_register_values(&[255]);
+        chip.execute(&Instruction::AddByte(0, 100));
+        register_eq!(chip, 0, 99);
     }
 }
