@@ -107,6 +107,18 @@ pub struct Register {
 }
 
 impl Register {
+    pub fn new() -> Register {
+        Register { values: [0u8; 16] }
+    }
+
+    pub fn with_values(values: &[u8]) -> Register {
+        let mut vals = [0u8; 16];
+        for i in 0..std::cmp::min(values.len(), 16) {
+            vals[i] = values[i];
+        }
+        Register { values: vals }
+    }
+
     pub fn set(&mut self, key: usize, value: u8) {
         self.values[key] = value;
     }
@@ -192,15 +204,11 @@ impl Chip {
     }
 
     pub fn new() -> Chip {
-        Chip { register: Register { values: [0u8; 16] } }
+        Chip { register: Register::new() }
     }
 
-    pub fn with_register(values: &[u8]) -> Chip {
-        let mut register_values = [0u8; 16];
-        for i in 0..std::cmp::min(values.len(), 16) {
-            register_values[i] = values[i];
-        }
-        Chip { register: Register { values: register_values } }
+    pub fn with_register_values(values: &[u8]) -> Chip {
+        Chip { register: Register::with_values(values) }
     }
 }
 
@@ -253,35 +261,35 @@ mod register_instructions {
 
     #[test]
     fn bitwise_and() {
-        let mut chip = Chip::with_register(&[10, 15]);
+        let mut chip = Chip::with_register_values(&[10, 15]);
         chip.execute(&Instruction::And(1, 0));
         register_eq!(chip, 1, 10 & 15);
     }
 
     #[test]
     fn bitwise_or() {
-        let mut chip = Chip::with_register(&[10, 15]);
+        let mut chip = Chip::with_register_values(&[10, 15]);
         chip.execute(&Instruction::Or(1, 0));
         register_eq!(chip, 1, 10 | 15);
     }
 
     #[test]
     fn bitwise_xor() {
-        let mut chip = Chip::with_register(&[10, 15]);
+        let mut chip = Chip::with_register_values(&[10, 15]);
         chip.execute(&Instruction::Xor(1, 0));
         register_eq!(chip, 1, 10 ^ 15);
     }
 
     #[test]
     fn add_works() {
-        let mut chip = Chip::with_register(&[10, 15]);
+        let mut chip = Chip::with_register_values(&[10, 15]);
         chip.execute(&Instruction::Add(1, 0));
         register_eq!(chip, 1, 25);
     }
 
     #[test]
     fn add_sets_carry_flag_on_overflow() {
-        let mut chip = Chip::with_register(&[255, 1]);
+        let mut chip = Chip::with_register_values(&[255, 1]);
         chip.execute(&Instruction::Add(0, 1));
         register_eq!(chip, 0, 0);
         register_eq!(chip, 1, 1);
@@ -290,7 +298,7 @@ mod register_instructions {
 
     #[test]
     fn subtract_when_vx_greater_than_vy() {
-        let mut chip = Chip::with_register(&[100, 25]);
+        let mut chip = Chip::with_register_values(&[100, 25]);
         chip.execute(&Instruction::Sub(0, 1));
         register_eq!(chip, 0, 75);
         register_eq!(chip, 0xF, 1);
@@ -298,7 +306,7 @@ mod register_instructions {
 
     #[test]
     fn subtract_when_vx_less_than_vy() {
-        let mut chip = Chip::with_register(&[25, 100]);
+        let mut chip = Chip::with_register_values(&[25, 100]);
         chip.execute(&Instruction::Sub(0, 1));
         register_eq!(chip, 0, 181); // 256 + (-75)
         register_eq!(chip, 0xF, 0);
@@ -306,7 +314,7 @@ mod register_instructions {
 
     #[test]
     fn add_then_subtract_restores_state() {
-        let mut chip = Chip::with_register(&[100, 25, 100]);
+        let mut chip = Chip::with_register_values(&[100, 25, 100]);
         chip.execute(&Instruction::Add(0, 1));
         register_eq!(chip, 0, 125);
 
@@ -316,7 +324,7 @@ mod register_instructions {
 
     #[test]
     fn add_then_subtract_restores_state_with_overflows() {
-        let mut chip = Chip::with_register(&[255, 100, 100]);
+        let mut chip = Chip::with_register_values(&[255, 100, 100]);
         chip.execute(&Instruction::Add(0, 1));
         register_eq!(chip, 0, 99);
         register_eq!(chip, 0xF, 1);
@@ -328,7 +336,7 @@ mod register_instructions {
 
     #[test]
     fn shift_right_with_odd_number_sets_vf_flag() {
-        let mut chip = Chip::with_register(&[5]);
+        let mut chip = Chip::with_register_values(&[5]);
         chip.execute(&Instruction::Shr(0));
         register_eq!(chip, 0, 2);
         register_eq!(chip, 0xF, 1);
@@ -336,7 +344,7 @@ mod register_instructions {
 
     #[test]
     fn shift_right_with_even_number_does_not_set_vf_flag() {
-        let mut chip = Chip::with_register(&[6]);
+        let mut chip = Chip::with_register_values(&[6]);
         chip.execute(&Instruction::Shr(0));
         register_eq!(chip, 0, 3);
         register_eq!(chip, 0xF, 0);
@@ -344,7 +352,7 @@ mod register_instructions {
 
     #[test]
     fn shift_left_then_shift_right_restores_state() {
-        let mut chip = Chip::with_register(&[100]);
+        let mut chip = Chip::with_register_values(&[100]);
         chip.execute(&Instruction::Shl(0));
         register_eq!(chip, 0, 200);
 
@@ -360,7 +368,7 @@ mod register_instructions {
 
     #[test]
     fn shift_right_then_shift_left_loses_info_with_odd_number() {
-        let mut chip = Chip::with_register(&[5]);
+        let mut chip = Chip::with_register_values(&[5]);
         chip.execute(&Instruction::Shr(0));
         register_eq!(chip, 0, 2);
         register_eq!(chip, 0xF, 1);
@@ -372,7 +380,7 @@ mod register_instructions {
 
     #[test]
     fn shift_left_with_overflow_sets_vf_flag() {
-        let mut chip = Chip::with_register(&[150]);
+        let mut chip = Chip::with_register_values(&[150]);
         chip.execute(&Instruction::Shl(0));
         register_eq!(chip, 0, 44);
         register_eq!(chip, 0xF, 1);
@@ -380,7 +388,7 @@ mod register_instructions {
 
     #[test]
     fn shift_left_then_shift_right_loses_info_with_overflow() {
-        let mut chip = Chip::with_register(&[150]);
+        let mut chip = Chip::with_register_values(&[150]);
         chip.execute(&Instruction::Shl(0));
         register_eq!(chip, 0, 44);
         register_eq!(chip, 0xF, 1);
