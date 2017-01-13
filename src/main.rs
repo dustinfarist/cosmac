@@ -112,9 +112,9 @@ pub struct Chip {
 }
 
 impl Chip {
-    pub fn execute(&mut self, instruction: Instruction) {
+    pub fn execute(&mut self, instruction: &Instruction) {
         println!("{0:<15?} ", instruction);
-        match instruction {
+        match *instruction {
             Instruction::LdByte(vx, value) => self.register.set(vx, value),
             Instruction::Ld(vx, vy) => {
                 let value = self.register.get(vy);
@@ -192,10 +192,22 @@ impl Chip {
 
 fn main() {
     let mut chip = Chip::new();
+    let instructions = [
+        Instruction::LdByte(0, 100),
+        Instruction::Ld(1, 0),
+        Instruction::Shl(0),
+        Instruction::Shr(1),
+        Instruction::Sub(0, 1),
+        Instruction::Add(1, 0),
+        Instruction::LdByte(2, 57),
+        Instruction::Xor(1, 2),
+        Instruction::Ld(3, 1),
+        Instruction::And(3, 2)
+    ];
 
-    // LD 0, 57
-    let opcode = (6 << 12) + (0 << 8) + 57;
-    chip.execute(Instruction::parse(opcode));
+    for ins in &instructions {
+        chip.execute(ins);
+    }
 }
 
 #[cfg(test)]
