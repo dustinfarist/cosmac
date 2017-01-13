@@ -1,6 +1,7 @@
 [package]
+authors = ["Dustin Farist <dustinfarist@users.noreply.github.com>"]
 name = "chip_8"
 version = "0.1.0"
-authors = ["Dustin Farist <dustinfarist@users.noreply.github.com>"]
 
 [dependencies]
+rand = "0.3.15"
