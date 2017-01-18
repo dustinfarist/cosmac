@@ -2,12 +2,20 @@ use components::AddressableStorage;
 
 #[derive(Debug)]
 pub struct Register {
+    pub delay: u8,
+    pub i: u16,
+    pub sound: u8,
     pub values: [u8; 16],
 }
 
 impl Register {
     pub fn new() -> Register {
-        Register { values: [0u8; 16] }
+        Register {
+            delay: 0,
+            i: 0,
+            sound: 0,
+            values: [0u8; 16],
+        }
     }
 
     pub fn with_values(values: &[u8]) -> Register {
@@ -15,7 +23,12 @@ impl Register {
         for i in 0..::std::cmp::min(values.len(), 16) {
             vals[i] = values[i];
         }
-        Register { values: vals }
+        Register {
+            delay: 0,
+            i: 0,
+            sound: 0,
+            values: vals,
+        }
     }
 }
 

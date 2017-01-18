@@ -1,16 +1,65 @@
-use components::{AddressableStorage, Register};
+use components::{AddressableStorage, Register, Memory};
 use Instruction;
 use rand::{self, Rng};
 
-#[derive(Debug)]
 pub struct Chip {
+    pub memory: Memory,
     pub register: Register,
+    pub program_counter: u16,
+    pub stack: Vec<u16>,
 }
 
 impl Chip {
+    pub fn new() -> Chip {
+        Chip {
+            register: Register::new(),
+            memory: Memory::new(),
+            program_counter: 0,
+            stack: Vec::new(),
+        }
+    }
+
+    pub fn with_register_values(values: &[u8]) -> Chip {
+        let mut chip = Chip::new();
+        chip.register = Register::with_values(values);
+        chip
+    }
+
     pub fn execute(&mut self, instruction: &Instruction) {
         println!("{0:<15?} ", instruction);
         match *instruction {
+            Instruction::Sys(_) => unimplemented!(),
+            Instruction::Cls => unimplemented!(),
+            Instruction::Ret => {
+                if let Some(addr) = self.stack.pop() {
+                    self.program_counter = addr & 0xFFF;
+                }
+            }
+            Instruction::Jp(addr) => self.program_counter = addr,
+            Instruction::Call(addr) => {
+                self.stack.push(self.program_counter);
+                self.program_counter = addr & 0xFFF;
+            }
+            Instruction::SeByte(vx, value) => {
+                if self.register.get(vx) == value {
+                    self.program_counter += 2;
+                }
+            }
+            Instruction::SneByte(vx, value) => {
+                if self.register.get(vx) != value {
+                    self.program_counter += 2;
+                }
+            }
+            Instruction::Se(vx, vy) => {
+                if self.register.get(vx) == self.register.get(vy) {
+                    self.program_counter += 2;
+                }
+            }
+            Instruction::Sne(vx, vy) => {
+                if self.register.get(vx) != self.register.get(vy) {
+                    self.program_counter += 2;
+                }
+            }
             Instruction::LdByte(vx, value) => self.register.set(vx, value),
             Instruction::AddByte(vx, value) => {
                 let value_x = self.register.get(vx) as u16;
@@ -73,20 +122,24 @@ impl Chip {
                 self.register.set(0xF, most_sig_bit);
                 self.register.set(vx, value_x << 1);
             }
+            Instruction::Ldi(value) => {
+                self.register.i = value;
+            }
+            Instruction::JpV0(addr) => {
+                self.program_counter = self.register.get(0) as u16 + addr;
+            }
             Instruction::Rnd(vx, mask) => {
                 let random: u8 = rand::thread_rng().gen::<u8>();
                 self.register.set(vx, random & mask);
             }
-            _ => (),
+            Instruction::LdVxDelay(vx) => {
+                let delay = self.register.delay;
+                self.register.set(vx, delay);
+            }
+            Instruction::LdDelayVx(vx) => {
+                self.register.delay = self.register.get(vx);
+            }
         }
         println!("{:?}\n", self.register.values);
-    }
-
-    pub fn new() -> Chip {
-        Chip { register: Register::new() }
-    }
-
-    pub fn with_register_values(values: &[u8]) -> Chip {
-        Chip { register: Register::with_values(values) }
     }
 }
