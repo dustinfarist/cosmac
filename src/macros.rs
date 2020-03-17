@@ -9,7 +9,3 @@ macro_rules! bitwise {
         }
     );
 }
-
-macro_rules! register_eq {
-    ($chip:tt, $vx:expr, $value:expr) => (assert_eq!($chip.register.get($vx), $value);)
-}

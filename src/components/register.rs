@@ -1,4 +1,4 @@
-use components::AddressableStorage;
+use crate::components::AddressableStorage;
 
 #[derive(Debug)]
 pub struct Register {

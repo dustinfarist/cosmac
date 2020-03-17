@@ -10,5 +10,5 @@ pub mod components;
 #[cfg(test)]
 mod tests;
 
-pub use chip::Chip;
-pub use instruction::Instruction;
+pub use crate::chip::Chip;
+pub use crate::instruction::Instruction;

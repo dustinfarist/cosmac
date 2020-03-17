@@ -1,5 +1,5 @@
-use components::{AddressableStorage, Register, Memory};
-use Instruction;
+use crate::components::{AddressableStorage, Register, Memory};
+use crate::Instruction;
 use rand::{self, Rng};
 
 pub struct Chip {

@@ -1,4 +1,4 @@
-use components::AddressableStorage;
+use crate::components::AddressableStorage;
 
 pub struct Memory {
     pub values: [u8; 4096],

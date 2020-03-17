@@ -1,5 +1,9 @@
-use {Chip, Instruction};
-use components::AddressableStorage;
+use crate::{Chip, Instruction};
+use crate::components::AddressableStorage;
+
+macro_rules! register_eq {
+    ($chip:tt, $vx:expr, $value:expr) => (assert_eq!($chip.register.get($vx), $value);)
+}
 
 #[test]
 fn load_byte() {
