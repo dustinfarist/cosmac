@@ -1,6 +1,6 @@
 [package]
 authors = ["Dustin Farist <dustinfarist@users.noreply.github.com>"]
-name = "chip_8"
+name = "cosmac"
 version = "0.1.0"
 edition = "2018"
 

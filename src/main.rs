@@ -1,6 +1,4 @@
-extern crate chip_8;
-
-use chip_8::{Chip, Instruction};
+use cosmac::{Chip, Instruction};
 
 fn main() {
     let mut chip = Chip::new();
